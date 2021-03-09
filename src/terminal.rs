@@ -61,4 +61,12 @@ impl Terminal {
             // if None we loop ie busy wait for actual input
         }
     }
+
+    pub fn cursor_show() {
+        print!("{}", termion::cursor::Show);
+    }
+
+    pub fn cursor_hide() {
+        print!("{}", termion::cursor::Hide);
+    }
 }
