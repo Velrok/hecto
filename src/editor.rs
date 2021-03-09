@@ -2,7 +2,6 @@
 use crate::Terminal;
 use std::io;
 use std::io::stdout;
-use std::io::Write;
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
@@ -36,14 +35,16 @@ impl Editor {
     }
 
     fn refresh_screen(&self) -> Result<(), std::io::Error> {
-        print!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
+        Terminal::clear_screen();
+        print!("{}", termion::cursor::Goto(1, 1));
+        Terminal::cursor_position(0, 0);
         if self.should_quit {
             println!("Goodbye.\r");
         } else {
             self.draw_rows();
-            print!("{}", termion::cursor::Goto(1, 1));
+            Terminal::cursor_position(0, 0);
         }
-        io::stdout().flush()
+        Terminal::flush()
     }
 
     pub fn run(&mut self) {
@@ -82,6 +83,6 @@ fn read_key() -> Result<Key, std::io::Error> {
 }
 
 fn die(e: std::io::Error) {
-    print!("{}", termion::clear::All);
+    Terminal::clear_screen();
     panic!(e)
 }
