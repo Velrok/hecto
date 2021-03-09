@@ -32,20 +32,19 @@ impl Editor {
         let welcome_msg = format!("Hecto -- version {}!", VERSION);
         let to = std::cmp::min(self.terminal.size().width as usize, welcome_msg.len());
 
-        println!("{}\r", &welcome_msg[..to]);
+        let height = self.terminal.size().height;
+        let width = self.terminal.size().width;
+        Terminal::cursor_position(width / 3, height / 3);
+        println!("{}", &welcome_msg[..to]);
+        Terminal::cursor_position(0, 0);
     }
 
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
-        let one_third = height / 3;
 
-        for line_index in 0..height - 1 {
+        for _ in 0..height - 1 {
             Terminal::clear_current_line();
-            if line_index == one_third {
-                self.draw_welcome_msg();
-            } else {
-                println!("~\r");
-            }
+            println!("~\r");
         }
     }
 
@@ -57,6 +56,7 @@ impl Editor {
             println!("Goodbye.\r");
         } else {
             self.draw_rows();
+            self.draw_welcome_msg();
             Terminal::cursor_position(0, 0);
         }
         Terminal::cursor_show();
