@@ -2,7 +2,7 @@
 use crate::Terminal;
 // use std::io;
 // use std::io::stdout;
-use std::cmp::max;
+use std::cmp::{max, min};
 use termion::event::Key;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -29,9 +29,10 @@ impl Editor {
 
     fn move_cursor(&mut self, dx: isize, dy: isize) {
         let Position { x, y } = self.cursor_position;
+        let crate::terminal::Size { width, height } = self.terminal.size();
 
-        let nx = max(0, x as isize + dx);
-        let ny = max(0, y as isize + dy);
+        let nx = min(max(0, x as isize + dx), *width as isize - 1);
+        let ny = min(max(0, y as isize + dy), *height as isize - 1);
 
         self.cursor_position = Position {
             x: nx as usize,
