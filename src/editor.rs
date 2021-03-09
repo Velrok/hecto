@@ -4,6 +4,8 @@ use crate::Terminal;
 // use std::io::stdout;
 use termion::event::Key;
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 pub struct Editor {
     should_quit: bool,
     terminal: Terminal,
@@ -26,10 +28,24 @@ impl Editor {
         Ok(())
     }
 
+    fn draw_welcome_msg(&self) {
+        let welcome_msg = format!("Hecto -- version {}!", VERSION);
+        let to = std::cmp::min(self.terminal.size().width as usize, welcome_msg.len());
+
+        println!("{}\r", &welcome_msg[..to]);
+    }
+
     fn draw_rows(&self) {
-        for _ in 0..self.terminal.size().height - 1 {
+        let height = self.terminal.size().height;
+        let one_third = height / 3;
+
+        for line_index in 0..height - 1 {
             Terminal::clear_current_line();
-            println!("~\r");
+            if line_index == one_third {
+                self.draw_welcome_msg();
+            } else {
+                println!("~\r");
+            }
         }
     }
 
