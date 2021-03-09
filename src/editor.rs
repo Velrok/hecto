@@ -1,17 +1,23 @@
 #![warn(clippy::all, clippy::pedantic)]
+use crate::Terminal;
 use std::io;
 use std::io::stdout;
+use std::io::Write;
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 
 pub struct Editor {
     should_quit: bool,
+    terminal: Terminal,
 }
 
 impl Editor {
     pub fn default() -> Self {
-        Self { should_quit: false }
+        Self {
+            should_quit: false,
+            terminal: Terminal::default().expect("Failed to init terminal."),
+        }
     }
 
     fn process_keypress(&mut self) -> Result<(), std::io::Error> {
@@ -23,6 +29,23 @@ impl Editor {
         Ok(())
     }
 
+    fn draw_rows(&self) {
+        for _ in 0..self.terminal.size().height {
+            println!("~\r");
+        }
+    }
+
+    fn refresh_screen(&self) -> Result<(), std::io::Error> {
+        print!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
+        if self.should_quit {
+            println!("Goodbye.\r");
+        } else {
+            self.draw_rows();
+            print!("{}", termion::cursor::Goto(1, 1));
+        }
+        io::stdout().flush()
+    }
+
     pub fn run(&mut self) {
         // There are a few things to note here. First, we are using termion to provide stdout, the counterpart of stdin from above with a function called into_raw_mode(), which we are calling. But why are we calling that method on stdout to change how we read from stdin? The answer is that terminals have their states controlled by the writer, not the reader. The writer is used to draw on the screen or move the cursor, so it is also used to change the mode as well.
         // RAW mode
@@ -31,11 +54,17 @@ impl Editor {
         // 3. output is not cannonicallized (no carrage return with new line)
         let _stdout = stdout().into_raw_mode().unwrap();
         loop {
-            if let Err(error) = self.process_keypress() {
+            // clear screen
+            if let Err(error) = self.refresh_screen() {
                 die(error);
             }
+            // exit here after cleaning if we have to
             if self.should_quit {
                 break;
+            }
+            // only process new stuff if need be
+            if let Err(error) = self.process_keypress() {
+                die(error);
             }
         }
     }
@@ -53,5 +82,6 @@ fn read_key() -> Result<Key, std::io::Error> {
 }
 
 fn die(e: std::io::Error) {
+    print!("{}", termion::clear::All);
     panic!(e)
 }
