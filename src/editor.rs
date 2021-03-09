@@ -2,13 +2,20 @@
 use crate::Terminal;
 // use std::io;
 // use std::io::stdout;
+use std::cmp::max;
 use termion::event::Key;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+struct Position {
+    x: usize,
+    y: usize,
+}
+
 pub struct Editor {
     should_quit: bool,
     terminal: Terminal,
+    cursor_position: Position,
 }
 
 impl Editor {
@@ -16,13 +23,30 @@ impl Editor {
         Self {
             should_quit: false,
             terminal: Terminal::default().expect("Failed to init terminal."),
+            cursor_position: Position { x: 0, y: 0 },
         }
+    }
+
+    fn move_cursor(&mut self, dx: isize, dy: isize) {
+        let Position { x, y } = self.cursor_position;
+
+        let nx = max(0, x as isize + dx);
+        let ny = max(0, y as isize + dy);
+
+        self.cursor_position = Position {
+            x: nx as usize,
+            y: ny as usize,
+        };
     }
 
     fn process_keypress(&mut self) -> Result<(), std::io::Error> {
         let pressed_key = Terminal::read_key()?;
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
+            Key::Char('j') => self.move_cursor(0, 1),
+            Key::Char('k') => self.move_cursor(0, -1),
+            Key::Char('h') => self.move_cursor(-1, 0),
+            Key::Char('l') => self.move_cursor(1, 0),
             _ => (),
         }
         Ok(())
@@ -57,7 +81,7 @@ impl Editor {
         } else {
             self.draw_rows();
             self.draw_welcome_msg();
-            Terminal::cursor_position(0, 0);
+            Terminal::cursor_position(self.cursor_position.x as u16, self.cursor_position.y as u16);
         }
         Terminal::cursor_show();
         Terminal::flush()
