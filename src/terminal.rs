@@ -1,6 +1,8 @@
 use std::io;
 use std::io::stdout;
 use std::io::Write;
+use termion::event::Key;
+use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 
 pub struct Size {
@@ -47,5 +49,16 @@ impl Terminal {
     // needs a raw terminal mode term
     pub fn flush() -> Result<(), std::io::Error> {
         io::stdout().flush()
+    }
+
+    pub fn read_key() -> Result<Key, std::io::Error> {
+        loop {
+            // next will not block it returns Some if something was pressed or None if nothing was
+            // pressed
+            if let Some(key) = io::stdin().lock().keys().next() {
+                return key;
+            }
+            // if None we loop ie busy wait for actual input
+        }
     }
 }
