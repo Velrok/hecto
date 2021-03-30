@@ -23,10 +23,17 @@ pub struct Editor {
 }
 
 impl Editor {
+    // effectively the new main method
     pub fn default() -> Self {
+        let document = if let Some(filename) = std::env::args().nth(1) {
+            Document::open(&filename).unwrap_or_default()
+        } else {
+            Document::default()
+        };
+
         Self {
             should_quit: false,
-            document: Document::open(),
+            document,
             terminal: Terminal::default().expect("Failed to init terminal."),
             cursor_position: Position::default(),
         }

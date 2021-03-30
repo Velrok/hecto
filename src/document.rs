@@ -1,5 +1,6 @@
 #![warn(clippy::all, clippy::pedantic)]
 use std::convert::From;
+use std::fs;
 
 pub struct Row {
     pub string: String,
@@ -19,10 +20,11 @@ pub struct Document {
 }
 
 impl Document {
-    pub fn open() -> Self {
-        Self {
-            rows: vec!["hello world".into()],
-        }
+    pub fn open(filename: &str) -> Result<Self, std::io::Error> {
+        let content = fs::read_to_string(filename)?;
+        Ok(Self {
+            rows: content.lines().map(|s| s.into()).collect(),
+        })
     }
 
     pub fn is_empty(&self) -> bool {
