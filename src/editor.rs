@@ -1,4 +1,6 @@
 #![warn(clippy::all, clippy::pedantic)]
+use crate::document::Row;
+use crate::Document;
 use crate::Terminal;
 // use std::io;
 // use std::io::stdout;
@@ -7,6 +9,7 @@ use termion::event::Key;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+#[derive(Default)]
 struct Position {
     x: usize,
     y: usize,
@@ -16,14 +19,16 @@ pub struct Editor {
     should_quit: bool,
     terminal: Terminal,
     cursor_position: Position,
+    document: Document,
 }
 
 impl Editor {
     pub fn default() -> Self {
         Self {
             should_quit: false,
+            document: Document::open(),
             terminal: Terminal::default().expect("Failed to init terminal."),
-            cursor_position: Position { x: 0, y: 0 },
+            cursor_position: Position::default(),
         }
     }
 
@@ -67,10 +72,18 @@ impl Editor {
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
 
-        for _ in 0..height - 1 {
+        for i in 0..height - 1 {
             Terminal::clear_current_line();
-            println!("~\r");
+            if let Some(row) = self.get_row(i as usize) {
+                println!("{}\r", row.string);
+            } else {
+                println!("~\r");
+            }
         }
+    }
+
+    fn get_row(&self, i: usize) -> Option<&Row> {
+        self.document.rows.get(i)
     }
 
     fn refresh_screen(&self) -> Result<(), std::io::Error> {
