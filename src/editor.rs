@@ -70,12 +70,17 @@ impl Editor {
     }
 
     fn draw_rows(&self) {
-        let height = self.terminal.size().height;
+        let term_height = self.terminal.size().height;
+        let term_width = self.terminal.size().width;
 
-        for i in 0..height - 1 {
+        for i in 0..term_height - 1 {
             Terminal::clear_current_line();
             if let Some(row) = self.get_row(i as usize) {
-                println!("{}\r", row.string);
+                let width = min(row.string.len(), term_width as usize);
+                println!(
+                    "{}\r",
+                    row.string.get(0..(width as usize)).unwrap_or_default()
+                );
             } else {
                 println!("~\r");
             }
