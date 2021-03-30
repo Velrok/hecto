@@ -99,7 +99,9 @@ impl Editor {
             println!("Goodbye.\r");
         } else {
             self.draw_rows();
-            self.draw_welcome_msg();
+            if self.document.is_empty() {
+                self.draw_welcome_msg();
+            }
             Terminal::cursor_position(self.cursor_position.x as u16, self.cursor_position.y as u16);
         }
         Terminal::cursor_show();

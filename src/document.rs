@@ -24,4 +24,8 @@ impl Document {
             rows: vec!["hello world".into()],
         }
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.rows.is_empty()
+    }
 }
